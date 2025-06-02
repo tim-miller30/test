@@ -1,0 +1,2637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Business Card Generator</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=Roboto:wght@300;400;500&family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --primary-dark: #4f46e5;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+
+      /* New CSS Variables for dynamic sizing & fonts */
+      --card-font-size: 16px;
+      --card-name-font-size: 24px;
+      --card-title-font-size: 18px;
+      --card-company-font-size: 16px;
+      --card-icon-size: 32px;
+      --card-qr-size: 150px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.6;
+    }
+
+    #business-card-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .panel {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-header h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-800);
+    }
+
+    .panel-body {
+      padding: 1.5rem;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .tab {
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--gray-500);
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+
+
+    .tab:hover {
+      color: var(--gray-700);
+    }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+      padding: 1.5rem;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+
+    .required-field:after {
+      content: " *";
+      color: #e53e3e;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--gray-300);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-control[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 8px;
+      background: var(--gray-200);
+      outline: none;
+      border-radius: 4px;
+      padding: 0;
+    }
+
+    .form-control[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: grab;
+      margin-top: -6px;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .form-control[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: grab;
+      border: none;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .form-control.error {
+      border-color: #e53e3e;
+    }
+
+    .error-message {
+      color: #e53e3e;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.625rem 1.25rem;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9375rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+
+    .btn i {
+      margin-right: 0.5rem;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border-color: var(--gray-300);
+      color: var(--gray-700);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--gray-50);
+      border-color: var(--gray-400);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap; /* Allow wrapping for more buttons */
+    }
+
+    .btn-group .btn {
+      flex: 1;
+      min-width: 80px; /* Ensure buttons don't get too small */
+    }
+
+    .btn-group .btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .avatar-upload {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .avatar-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      border: 4px solid var(--gray-100);
+    }
+
+    .avatar-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar-upload-btn {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+      /* FIX: Ensure proper alignment as a flex item */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1; /* This will make it grow and shrink similarly to other flex items */
+    }
+
+    .avatar-upload-btn input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .avatar-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .template-selector {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .template {
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .template:hover {
+      border-color: var(--primary-light);
+    }
+
+    .template.selected {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+
+    .template-preview {
+      height: 120px;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .template-name {
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .color-picker {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .color-picker input {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .color-picker input::-webkit-color-swatch {
+      border: none;
+      border-radius: 6px;
+    }
+
+    .layout-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .layout-option {
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .layout-option:hover {
+      border-color: var(--primary-light);
+    }
+
+    .layout-option.selected {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+
+    .layout-preview {
+      height: 80px;
+      background: var(--gray-100);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .preview-icon {
+      width: 24px;
+      height: 24px;
+      background: var(--gray-300);
+      border-radius: 50%;
+    }
+
+    .preview-line {
+      width: 80%;
+      height: 8px;
+      background: var(--gray-300);
+      border-radius: 4px;
+    }
+
+    .layout-name {
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .icon-position-selector {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .icon-position-btn {
+      flex: 1;
+      padding: 0.75rem 0.5rem; /* Adjusted padding */
+      border: 2px solid var(--gray-200); /* Thicker border for better visual */
+      border-radius: 12px; /* More rounded corners */
+      cursor: pointer;
+      display: flex;
+      flex-direction: row; /* Changed to row for horizontal layout */
+      align-items: center;
+      justify-content: center; /* Center horizontally */
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      color: var(--gray-700);
+    }
+
+    .icon-position-btn:hover {
+      border-color: var(--primary-light);
+      background-color: var(--gray-50);
+    }
+
+    .icon-position-btn.active {
+      border-color: var(--primary);
+      background-color: rgba(99, 102, 241, 0.1);
+      color: var(--primary-dark);
+    }
+
+    .icon-position-btn i { /* Specific style for icon inside these buttons */
+        font-size: 1.2em; /* Make icon slightly larger */
+        color: var(--gray-500); /* Default icon color */
+    }
+
+    .icon-position-btn.active i {
+        color: var(--primary); /* Active icon color */
+    }
+
+    /* Removed .icon-preview, integrated directly into .icon-position-btn */
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+    }
+
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .icon-item:hover {
+      background-color: var(--gray-100);
+    }
+
+    .icon-item.selected {
+      background-color: rgba(99, 102, 241, 0.1);
+      border: 1px solid var(--primary);
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    #savedDesignsList {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    #savedDesignsList li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    #savedDesignsList li:last-child {
+        border-bottom: none;
+    }
+
+    #savedDesignsList li span {
+        font-weight: 500;
+        color: var(--gray-700);
+    }
+
+    #savedDesignsList li .actions button {
+        margin-left: 0.5rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    /* Adjust the preview panel body to properly center the card */
+    .preview-panel .panel-body {
+      display: flex;
+      justify-content: center; /* Center horizontally */
+      align-items: center; /* Center vertically */
+      min-height: 400px; /* Increased min-height to give more space for preview */
+      padding: 1.5rem; /* Ensure consistent padding */
+    }
+
+    .card {
+      width: 100%;
+      max-width: 400px; /* Standard business card width */
+      /* FIX: Allow card height to adjust based on content */
+      min-height: 230px; /* Ensure minimum height */
+      height: auto; /* Allow height to adjust based on content */
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      margin: 0 auto;
+      font-family: 'Poppins', sans-serif;
+      transition: all 0.3s ease; /* Smooth transitions for design changes */
+      font-size: var(--card-font-size);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Granular Font Sizing */
+    .card h2#cardName {
+        font-size: var(--card-name-font-size);
+        transition: font-size 0.3s ease;
+    }
+
+    .card .subtitle#cardPosition {
+        font-size: var(--card-title-font-size);
+        transition: font-size 0.3s ease;
+    }
+
+    .card .subtitle#cardCompany {
+        font-size: var(--card-company-font-size);
+        transition: font-size 0.3s ease;
+    }
+
+    .card .info-tile span, .card .card-description, .card .additional-info span {
+        font-size: var(--card-font-size);
+        transition: font-size 0.3s ease;
+    }
+
+    .card-banner {
+      height: 120px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      position: relative;
+      background-size: cover;
+      background-position: center;
+      transition: background 0.3s ease;
+    }
+
+    .card-avatar-container {
+      position: absolute;
+      bottom: -50px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid white;
+      overflow: hidden;
+      background: white;
+      transition: all 0.3s ease;
+    }
+
+    .card-avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-content {
+      padding: 4rem 1.5rem 1.5rem;
+      text-align: center;
+      flex-grow: 1; /* Allow content to take remaining height */
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start; /* Align content to the top */
+      transition: padding 0.3s ease;
+    }
+
+    .card-content h2 {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: var(--gray-900);
+      transition: color 0.3s ease;
+    }
+
+    .subtitle {
+      color: var(--gray-600);
+      margin-bottom: 0.5rem; /* Adjusted for tighter spacing */
+      transition: color 0.3s ease;
+    }
+
+    .card-description {
+        margin-top: 0.5rem; /* Tighter spacing for description */
+        margin-bottom: 1rem;
+    }
+
+    .info-tile {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem; /* Tighter spacing */
+      padding: 0.25rem 0;
+      border-bottom: 1px solid var(--gray-100);
+      transition: all 0.2s ease;
+    }
+
+    .info-tile i {
+      width: var(--card-icon-size);
+      height: var(--card-icon-size);
+      min-width: var(--card-icon-size);
+      min-height: var(--card-icon-size);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-100);
+      border-radius: 50%;
+      margin-right: 0.75rem;
+      color: var(--gray-700);
+      transition: all 0.2s ease;
+      font-size: calc(var(--card-icon-size) * 0.5);
+    }
+
+    .info-tile:hover i {
+      background: var(--primary);
+      color: white;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1rem; /* Adjusted for tighter spacing */
+      flex-wrap: wrap;
+    }
+
+    .social-link {
+      width: var(--card-icon-size);
+      height: var(--card-icon-size);
+      min-width: var(--card-icon-size);
+      min-height: var(--card-icon-size);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-100);
+      border-radius: 50%;
+      color: var(--gray-700);
+      transition: all 0.2s ease;
+      text-decoration: none;
+      font-size: calc(var(--card-icon-size) * 0.5);
+    }
+
+    .social-link:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .qr-code {
+      margin-top: 1.5rem;
+      padding: 0.75rem;
+      background: white;
+      border-radius: 8px;
+      display: inline-block;
+      width: var(--card-qr-size);
+      height: var(--card-qr-size);
+      overflow: hidden;
+    }
+
+    .qr-code img, .qr-code canvas { /* Target both img and canvas for QR code */
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    /* Personal info section */
+    .personal-info-section {
+      background: #f9fafb;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Toggle switches */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+      margin-left: 10px;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .toggle-slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .toggle-slider:before {
+      transform: translateX(26px);
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      justify-content: space-between;
+      color: var(--gray-700);
+      font-weight: 500;
+    }
+
+    /* Avatar selection */
+    .avatar-selection {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .avatar-option {
+      border: 2px solid #e5e7eb;
+      border-radius: 50%;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+    }
+
+    .avatar-option.selected {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+
+    .avatar-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Description box */
+    #description {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    /* Card description */
+    .card-description {
+      background: rgba(0,0,0,0.03);
+      padding: 1rem;
+      border-radius: 12px;
+      margin: 1rem auto;
+      line-height: 1.5;
+      text-align: left;
+      max-width: 90%;
+      word-wrap: break-word;
+      transition: all 0.3s ease;
+    }
+
+    /* Additional info elements */
+    .additional-info {
+      font-size: calc(var(--card-font-size) * 0.85);
+      color: var(--gray-600);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid var(--gray-100);
+      transition: all 0.3s ease;
+    }
+
+    .additional-info i {
+        margin-right: 0.5rem;
+        font-size: calc(var(--card-font-size) * 1.1);
+        color: var(--gray-500);
+        transition: color 0.3s ease;
+    }
+
+    /* Layout-specific styles */
+    .minimal-layout {
+      text-align: center;
+    }
+
+    .minimal-layout .info-tile, .minimal-layout .additional-info {
+      justify-content: center;
+    }
+
+    .icons-top-layout .info-tile {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        border: none;
+        padding: 0.5rem 0;
+    }
+
+    .icons-top-layout .info-tile i {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+        background: transparent;
+        color: var(--gray-700);
+    }
+
+    .icons-top-layout .info-tile span {
+        font-size: 0.9em;
+        display: block;
+    }
+
+    /* Icon position styles */
+    /* Removed individual .icons-left, .icons-right, .icons-top classes from here
+       as they are now applied to #cardInfoContainer directly in JS
+       This ensures cleaner toggling and no conflict */
+    .icons-right .info-tile {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+    .icons-right .info-tile i {
+        margin-left: 0.75rem;
+        margin-right: 0;
+    }
+
+    .icons-top .info-tile {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .icons-top .info-tile i {
+      margin-right: 0;
+      margin-bottom: 0.5rem;
+    }
+
+    /* New Template Specific Styles */
+    .template-classic .card-content {
+        padding-top: 2rem; /* Less padding if no avatar overlay */
+    }
+    .template-classic .card-avatar-container {
+        display: none; /* Hide avatar container */
+    }
+    .template-classic .card-banner {
+        height: 80px;
+        background: var(--primary); /* Solid color for classic */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1.5em;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .template-classic .card-content h2, .template-classic .subtitle {
+        text-align: left; /* Align text left */
+    }
+    .template-classic .info-tile, .template-classic .additional-info {
+        justify-content: flex-start; /* Align info tiles left */
+    }
+    .template-classic .social-links {
+        justify-content: flex-start; /* Align social links left */
+        margin-top: 1.5rem;
+    }
+    .template-classic .qr-code {
+        float: right; /* Position QR code to the right */
+        margin-left: 1rem;
+        margin-top: 0;
+    }
+
+    .template-modern .card-banner {
+        /* Already defined for default modern look */
+    }
+
+    .template-clean .card-banner {
+        height: 60px;
+        background: var(--gray-100); /* Light background */
+        border-bottom: 2px solid var(--primary); /* Accent line */
+    }
+    .template-clean .card-avatar-container {
+        border: 4px solid var(--primary); /* Accent border */
+    }
+    .template-clean .card-content {
+        padding-top: 4rem;
+        text-align: left;
+    }
+    .template-clean .card-content h2, .template-clean .subtitle {
+        text-align: left;
+    }
+    .template-clean .info-tile, .template-clean .additional-info {
+        justify-content: flex-start;
+    }
+    .template-clean .info-tile i {
+        background: transparent;
+        color: var(--primary); /* Accent colored icons */
+        border: 1px solid var(--primary);
+    }
+    .template-clean .social-links {
+        justify-content: flex-start;
+    }
+    .template-clean .qr-code {
+        margin-top: 1rem;
+        float: none; /* Reset float */
+        display: block; /* Make it a block element to center with margin auto */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+
+    /* Responsive styles */
+    @media (max-width: 768px) {
+      #business-card-container {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+      }
+
+      .template-selector, .layout-selector {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1rem;
+      }
+
+      .btn-group {
+        width: 100%;
+        flex-wrap: wrap;
+      }
+      .btn-group .btn {
+          flex: auto; /* Allow buttons to size automatically */
+          width: auto; /* Reset width */
+      }
+
+      .tab-content {
+          padding: 1rem;
+      }
+
+      .modal-content {
+          width: 95%;
+      }
+
+      .card {
+        height: auto; /* Allow card height to adjust on smaller screens */
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="business-card-container">
+  <div class="panel editor-panel">
+    <div class="panel-header">
+      <h2>Business Card Editor</h2>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="saveDesign()"><i class="fas fa-save"></i> Save</button>
+        <button class="btn btn-outline" onclick="openModal('loadDesignModal')"><i class="fas fa-folder-open"></i> Load</button>
+        <button class="btn btn-outline" onclick="clearDesign()"><i class="fas fa-eraser"></i> Clear</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-tab="personal" onclick="switchTab('personal')">Personal</div>
+      <div class="tab" data-tab="professional" onclick="switchTab('professional')">Professional</div>
+      <div class="tab" data-tab="social" onclick="switchTab('social')">Social</div>
+      <div class="tab" data-tab="design" onclick="switchTab('design')">Design</div>
+    </div>
+
+    <div id="personal-tab" class="tab-content active">
+      <div class="avatar-upload">
+        <div class="avatar-preview" id="avatarPreview"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" id="avatarPreviewImg"></div>
+        <div class="avatar-actions">
+          <div class="btn btn-outline avatar-upload-btn"><i class="fas fa-camera"></i> Upload<input type="file" id="avatarUpload" accept="image/*" onchange="handleAvatarUpload(event)"></div>
+          <button class="btn btn-outline" onclick="removeAvatar()"><i class="fas fa-trash"></i> Remove</button>
+        </div>
+
+        <div class="form-group">
+          <label>Choose Built-in Avatar</label>
+          <div class="avatar-selection">
+            <div class="avatar-option" onclick="selectBuiltinAvatar('male', this)">
+              <img src="https://cdn-icons-png.flaticon.com/512/236/236831.png" alt="Male Avatar">
+            </div>
+            <div class="avatar-option" onclick="selectBuiltinAvatar('female', this)">
+              <img src="https://cdn-icons-png.flaticon.com/512/236/236832.png" alt="Female Avatar">
+            </div>
+            <div class="avatar-option" onclick="selectBuiltinAvatar('kid', this)">
+              <img src="https://cdn-icons-png.flaticon.com/512/1864/1864593.png" alt="Kid Avatar">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="personal-info-section">
+        <div class="form-group">
+          <label for="name" class="required-field">Full Name</label>
+          <input type="text" id="name" class="form-control" placeholder="Your Full Name" required oninput="debounceUpdateCard()">
+          <div class="error-message" id="name-error">Please enter your name</div>
+        </div>
+
+        <div class="form-group">
+          <label for="dob">Date of Birth</label>
+          <input type="date" id="dob" class="form-control" oninput="debounceUpdateCard()">
+          <div class="toggle-label">
+            <span>Show on card</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="showDob" checked onchange="updateCard()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Gender</label>
+          <div class="btn-group">
+            <button class="btn btn-outline" type="button" onclick="setGender('male', this)"><i class="fas fa-male"></i> Male</button>
+            <button class="btn btn-outline" type="button" onclick="setGender('female', this)"><i class="fas fa-female"></i> Female</button>
+            <button class="btn btn-outline" type="button" onclick="setGender('other', this)"><i class="fas fa-user"></i> Other</button>
+          </div>
+          <div class="toggle-label">
+            <span>Show on card</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="showGender" checked onchange="updateCard()">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <input type="hidden" id="gender" value="">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="position" class="required-field">Job Title</label>
+        <input type="text" id="position" class="form-control" placeholder="Job Title" required oninput="debounceUpdateCard()">
+        <div class="error-message" id="position-error">Please enter your job title</div>
+      </div>
+
+      <div class="form-group">
+        <label for="description">About Me</label>
+        <textarea id="description" class="form-control" placeholder="A short description about yourself" oninput="debounceUpdateCard()"></textarea>
+        <div class="toggle-label">
+          <span>Show on card</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="showDescription" checked onchange="updateCard()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div id="professional-tab" class="tab-content">
+      <div class="form-group">
+        <label for="company" class="required-field">Company</label>
+        <input type="text" id="company" class="form-control" placeholder="Company Name" required oninput="debounceUpdateCard()">
+        <div class="error-message" id="company-error">Please enter your company name</div>
+        <div class="toggle-label">
+          <span>Show on card</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="showCompany" checked onchange="updateCard()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="department">Department</label>
+        <input type="text" id="department" class="form-control" placeholder="Department" oninput="debounceUpdateCard()">
+        <div class="toggle-label">
+          <span>Show on card</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="showDepartment" checked onchange="updateCard()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="phone" class="required-field">Phone</label>
+        <input type="tel" id="phone" class="form-control" placeholder="Phone Number" required oninput="debounceUpdateCard()">
+        <div class="error-message" id="phone-error">Please enter a valid phone number</div>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="required-field">Email</label>
+        <input type="email" id="email" class="form-control" placeholder="Email Address" required oninput="debounceUpdateCard()">
+        <div class="error-message" id="email-error">Please enter a valid email address</div>
+      </div>
+
+      <div class="form-group">
+        <label for="address">Address</label>
+        <input type="text" id="address" class="form-control" placeholder="Business Address" oninput="debounceUpdateCard()">
+        <div class="toggle-label">
+          <span>Show on card</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="showAddress" checked onchange="updateCard()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="website">Website</label>
+        <input type="url" id="website" class="form-control" placeholder="Website URL" oninput="debounceUpdateCard(); debounceUpdateQRCode()">
+        <div class="toggle-label">
+          <span>Show on card</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="showWebsite" checked onchange="updateCard()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Upload Banner Image</label>
+        <div class="btn btn-outline"><i class="fas fa-image"></i> Upload Banner<input type="file" id="bannerImageUpload" accept="image/*" onchange="handleBannerUpload(event)"></div>
+      </div>
+    </div>
+
+    <div id="social-tab" class="tab-content">
+      <div class="form-group">
+        <label for="linkedin">LinkedIn</label>
+        <input type="url" id="linkedin" class="form-control" placeholder="LinkedIn Profile URL" oninput="debounceUpdateCard()">
+      </div>
+
+      <div class="form-group">
+        <label for="twitter">Twitter</label>
+        <input type="url" id="twitter" class="form-control" placeholder="Twitter Profile URL" oninput="debounceUpdateCard()">
+      </div>
+
+      <div class="form-group">
+        <label for="instagram">Instagram</label>
+        <input type="url" id="instagram" class="form-control" placeholder="Instagram Profile URL" oninput="debounceUpdateCard()">
+      </div>
+
+      <div class="form-group">
+        <label for="github">GitHub</label>
+        <input type="url" id="github" class="form-control" placeholder="GitHub Profile URL" oninput="debounceUpdateCard()">
+      </div>
+
+      <div class="form-group">
+        <label>Customize Icons</label>
+        <div class="btn-group">
+          <button class="btn btn-outline" onclick="openIconPicker('phone')"><i class="fas fa-phone"></i> Phone</button>
+          <button class="btn btn-outline" onclick="openIconPicker('email')"><i class="fas fa-envelope"></i> Email</button>
+          <button class="btn btn-outline" onclick="openIconPicker('company')"><i class="fas fa-building"></i> Company</button>
+          <button class="btn btn-outline" onclick="openIconPicker('address')"><i class="fas fa-map-marker-alt"></i> Address</button>
+          <button class="btn btn-outline" onclick="openIconPicker('website')"><i class="fas fa-globe"></i> Website</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="design-tab" class="tab-content">
+      <div class="form-group">
+        <label>Select Template</label>
+        <div class="template-selector">
+          <div class="template selected" data-template="modern" onclick="selectTemplate('modern', this)">
+            <div class="template-preview" style="background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%);"></div>
+            <div class="template-name">Modern</div>
+          </div>
+          <div class="template" data-template="classic" onclick="selectTemplate('classic', this)">
+            <div class="template-preview" style="background: #111827;"></div>
+            <div class="template-name">Classic</div>
+          </div>
+          <div class="template" data-template="clean" onclick="selectTemplate('clean', this)">
+            <div class="template-preview" style="background: var(--gray-100); border-bottom: 2px solid var(--primary);"></div>
+            <div class="template-name">Clean</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Custom Colors</label>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+          <div>
+            <label for="bgColor">Background</label>
+            <div class="color-picker">
+              <input type="color" id="bgColor" value="#ffffff" oninput="debounceUpdateCard()">
+            </div>
+          </div>
+          <div>
+            <label for="textColor">Text</label>
+            <div class="color-picker">
+              <input type="color" id="textColor" value="#111827" oninput="debounceUpdateCard()">
+            </div>
+          </div>
+          <div>
+            <label for="accentColor">Accent</label>
+            <div class="color-picker">
+              <input type="color" id="accentColor" value="#6366f1" oninput="debounceUpdateCard()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="fontFamily">Font Family</label>
+        <select id="fontFamily" class="form-control" onchange="updateCard()">
+          <option value="'Poppins', sans-serif">Poppins</option>
+          <option value="'Inter', sans-serif">Inter</option>
+          <option value="'Roboto', sans-serif">Roboto</option>
+          <option value="'Montserrat', sans-serif">Montserrat</option>
+          <option value="'Playfair Display', serif">Playfair Display</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="fontWeight">Font Weight</label>
+        <select id="fontWeight" class="form-control" onchange="updateCard()">
+            <option value="300">Light (300)</option>
+            <option value="400">Regular (400)</option>
+            <option value="500">Medium (500)</option>
+            <option value="600" selected>Semi-Bold (600)</option>
+            <option value="700">Bold (700)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="nameFontSize">Name Size (<span id="nameFontSizeValue">24px</span>)</label>
+        <input type="range" id="nameFontSize" class="form-control" value="24" min="18" max="40" step="1" oninput="debounceUpdateCard()">
+      </div>
+      <div class="form-group">
+        <label for="titleFontSize">Title Size (<span id="titleFontSizeValue">18px</span>)</label>
+        <input type="range" id="titleFontSize" class="form-control" value="18" min="12" max="30" step="1" oninput="debounceUpdateCard()">
+      </div>
+      <div class="form-group">
+        <label for="companyFontSize">Company Size (<span id="companyFontSizeValue">16px</span>)</label>
+        <input type="range" id="companyFontSize" class="form-control" value="16" min="10" max="24" step="1" oninput="debounceUpdateCard()">
+      </div>
+      <div class="form-group">
+        <label for="fontSize">General Text Size (<span id="fontSizeValue">16px</span>)</label>
+        <input type="range" id="fontSize" class="form-control" value="16" min="10" max="20" step="1" oninput="debounceUpdateCard()">
+      </div>
+
+      <div class="form-group">
+        <label>Icon Style</label>
+        <select id="iconStyle" class="form-control" onchange="updateIconStyles(); updateCard()">
+          <option value="fas">Solid (fas)</option>
+          <option value="far">Regular (far)</option>
+          <option value="fab">Brand (fab)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="iconSize">Icon Size (<span id="iconSizeValue">32px</span>)</label>
+        <input type="range" id="iconSize" class="form-control" value="32" min="20" max="60" step="1" oninput="debounceUpdateCard()">
+      </div>
+
+      <div class="form-group">
+        <label>Icon Color</label>
+        <div class="color-picker">
+          <input type="color" id="iconColor" value="#6b7280" oninput="debounceUpdateCard()">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Icon Position</label>
+        <div class="icon-position-selector">
+          <div class="icon-position-btn active" onclick="setIconPosition('left', this)">
+            <i class="fas fa-phone"></i>
+            <span>Left</span>
+          </div>
+          <div class="icon-position-btn" onclick="setIconPosition('right', this)">
+            <i class="fas fa-phone"></i>
+            <span>Right</span>
+          </div>
+          <div class="icon-position-btn" onclick="setIconPosition('top', this)">
+            <i class="fas fa-phone"></i>
+            <span>Top</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Card Layout</label>
+        <div class="layout-selector">
+          <div class="layout-option selected" data-layout="default" onclick="selectLayout('default', this)">
+            <div class="layout-preview">
+              <div class="preview-icon"></div>
+              <div class="preview-line"></div>
+              <div class="preview-line" style="width: 60%;"></div>
+            </div>
+            <div class="layout-name">Default</div>
+          </div>
+          <div class="layout-option" data-layout="minimal" onclick="selectLayout('minimal', this)">
+            <div class="layout-preview">
+              <div class="preview-line" style="width: 80%;"></div>
+              <div class="preview-line" style="width: 60%;"></div>
+            </div>
+            <div class="layout-name">Minimal</div>
+          </div>
+          <div class="layout-option" data-layout="icons-top" onclick="selectLayout('icons-top', this)">
+            <div class="layout-preview">
+              <div style="display: flex; gap: 0.5rem;">
+                <div class="preview-icon"></div>
+                <div class="preview-icon"></div>
+                <div class="preview-icon"></div>
+              </div>
+              <div class="preview-line" style="width: 80%;"></div>
+              <div class="preview-line" style="width: 60%;"></div>
+            </div>
+            <div class="layout-name">Icons Top</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>QR Code</label>
+        <div class="toggle-label">
+          <span>Show QR Code</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="showQRCode" checked onchange="updateQRCode(); updateCard()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="form-group" style="margin-top: 1rem;">
+            <label for="qrCodeSize">QR Code Size (<span id="qrCodeSizeValue">150px</span>)</label>
+            <input type="range" id="qrCodeSize" class="form-control" value="150" min="50" max="300" step="10" oninput="debounceUpdateQRCode(); updateCard()">
+        </div>
+        <div class="form-group">
+            <label for="qrCodeType">QR Code Content</label>
+            <select id="qrCodeType" class="form-control" onchange="updateQRCode(); updateCard()">
+                <option value="website">Website URL</option>
+                <option value="vcard">VCard (Contact Info)</option>
+                <option value="text">Custom Text</option>
+                <option value="email">Email Address</option>
+                <option value="phone">Phone Number</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="qrForegroundColor">QR Foreground Color</label>
+            <div class="color-picker">
+              <input type="color" id="qrForegroundColor" value="#000000" oninput="debounceUpdateQRCode(); updateCard()">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="qrBackgroundColor">QR Background Color</label>
+            <div class="color-picker">
+              <input type="color" id="qrBackgroundColor" value="#ffffff" oninput="debounceUpdateQRCode(); updateCard()">
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-body">
+      <button class="btn btn-primary" onclick="generateCard()" style="width: 100%; margin-bottom: 0.5rem;"><i class="fas fa-download"></i> Download Business Card (PNG)</button>
+      <button class="btn btn-outline" onclick="generateVCard()" style="width: 100%;"><i class="fas fa-address-book"></i> Download VCard (VCF)</button>
+    </div>
+  </div>
+
+  <div class="panel preview-panel">
+    <div class="panel-header">
+      <h2>Business Card Preview</h2>
+    </div>
+    <div class="panel-body" style="display: flex; justify-content: center; align-items: center; min-height: 300px;">
+      <div class="card" id="businessCard">
+        <div class="card-banner" id="cardBanner">
+          <div class="card-avatar-container">
+            <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Avatar" class="card-avatar" id="cardAvatar">
+          </div>
+        </div>
+        <div class="card-content">
+          <h2 id="cardName">Your Name</h2>
+          <div class="subtitle" id="cardPosition">Job Title</div>
+          <div class="subtitle" id="cardCompany">Company Name</div>
+
+          <div class="additional-info" id="dobTile">
+            <i class="far fa-calendar"></i>
+            <span id="cardDob"></span>
+          </div>
+          <div class="additional-info" id="genderTile">
+            <i class="fas fa-venus-mars"></i>
+            <span id="cardGender"></span>
+          </div>
+
+          <div class="card-description" id="cardDescription"></div>
+
+          <div id="cardInfoContainer">
+            <div class="info-tile" id="phoneTile">
+              <i class="fas fa-phone" id="phoneIcon"></i>
+              <span id="cardPhone">+1 (123) 456-7890</span>
+            </div>
+            <div class="info-tile" id="emailTile">
+              <i class="fas fa-envelope" id="emailIcon"></i>
+              <span id="cardEmail">your.email@example.com</span>
+            </div>
+            <div class="info-tile" id="companyDisplayTile"> <i class="fas fa-building" id="companyIcon"></i>
+              <span id="cardCompanyNameInfo">Company Name</span>
+            </div>
+            <div class="info-tile" id="departmentTile">
+              <i class="fas fa-building" id="departmentIcon"></i>
+              <span id="cardDepartment">Department</span>
+            </div>
+            <div class="info-tile" id="addressTileDisplay"> <i class="fas fa-map-marker-alt" id="addressIcon"></i>
+              <span id="cardAddressInfo">123 Business St, City</span>
+            </div>
+            <div class="info-tile" id="websiteTile">
+              <i class="fas fa-globe" id="websiteIcon"></i>
+              <span id="cardWebsite">www.example.com</span>
+            </div>
+          </div>
+
+          <div class="social-links" id="socialLinks">
+            </div>
+
+          <div class="qr-code" id="qrCodeContainer" style="display: none;">
+            <canvas id="qrCodeCanvas"></canvas> <img id="qrCodeImage" src="" alt="QR Code" style="display: none;"> </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="iconPickerModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Select Icon</h3>
+      <button class="btn btn-outline" onclick="closeModal('iconPickerModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <input type="text" id="iconSearch" class="form-control" placeholder="Search icons..." oninput="filterIcons()">
+      </div>
+      <div class="icon-grid" id="iconGrid">
+        </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('iconPickerModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="applySelectedIcon()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="loadDesignModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Load Saved Designs</h3>
+            <button class="btn btn-outline" onclick="closeModal('loadDesignModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <ul id="savedDesignsList">
+                <li>No saved designs found.</li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('loadDesignModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+  // Global variables
+  let selectedIconField = '';
+  let selectedIconClass = '';
+  let debounceTimeout; // For debouncing input
+
+  const iconCategories = {
+    'contact': ['phone', 'envelope', 'map-marker-alt', 'globe', 'mobile-alt', 'fax', 'at', 'home', 'location-dot', 'link'],
+    'social': ['linkedin-in', 'twitter', 'instagram', 'github', 'facebook-f', 'youtube', 'tiktok', 'snapchat', 'pinterest', 'discord'],
+    'business': ['building', 'briefcase', 'user-tie', 'chart-line', 'handshake', 'industry', 'lightbulb', 'project-diagram'],
+    'personal': ['calendar', 'user', 'venus-mars', 'birthday-cake', 'heart', 'mug-hot', 'palette'],
+    'other': ['qrcode', 'info-circle', 'question-circle', 'star', 'tag', 'circle-question']
+  };
+
+  // Debounce function to limit how often updateCard() is called
+  function debounce(func, delay) {
+    return function() {
+      const context = this;
+      const args = arguments;
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(() => func.apply(context, args), delay);
+    };
+  }
+
+  // Initialize the app
+  document.addEventListener('DOMContentLoaded', function() {
+    populateIconGrid();
+
+    // Set default values and initial card state
+    loadLastDesign(); // Try to load the last auto-saved design
+    updateCard(); // Ensure card is updated with loaded or default values
+    updateQRCode();
+
+    // Attach debounced listeners to relevant inputs
+    document.querySelectorAll('.form-control[oninput*="debounceUpdateCard"]').forEach(input => {
+        // Remove existing oninput and attach a debounced one
+        input.removeAttribute('oninput');
+        input.addEventListener('input', debounceUpdateCard);
+    });
+
+    // Update slider value displays initially and on input
+    document.getElementById('nameFontSize').addEventListener('input', function() {
+        document.getElementById('nameFontSizeValue').textContent = `${this.value}px`;
+    });
+    document.getElementById('titleFontSize').addEventListener('input', function() {
+        document.getElementById('titleFontSizeValue').textContent = `${this.value}px`;
+    });
+    document.getElementById('companyFontSize').addEventListener('input', function() {
+        document.getElementById('companyFontSizeValue').textContent = `${this.value}px`;
+    });
+    document.getElementById('fontSize').addEventListener('input', function() {
+        document.getElementById('fontSizeValue').textContent = `${this.value}px`;
+    });
+    document.getElementById('iconSize').addEventListener('input', function() {
+        document.getElementById('iconSizeValue').textContent = `${this.value}px`;
+    });
+    document.getElementById('qrCodeSize').addEventListener('input', function() {
+        document.getElementById('qrCodeSizeValue').textContent = `${this.value}px`;
+    });
+
+    // Set initial display for slider values
+    document.getElementById('nameFontSizeValue').textContent = `${document.getElementById('nameFontSize').value}px`;
+    document.getElementById('titleFontSizeValue').textContent = `${document.getElementById('titleFontSize').value}px`;
+    document.getElementById('companyFontSizeValue').textContent = `${document.getElementById('companyFontSize').value}px`;
+    document.getElementById('fontSizeValue').textContent = `${document.getElementById('fontSize').value}px`;
+    document.getElementById('iconSizeValue').textContent = `${document.getElementById('iconSize').value}px`;
+    document.getElementById('qrCodeSizeValue').textContent = `${document.getElementById('qrCodeSize').value}px`;
+
+    // Set up event listeners for required fields
+    document.getElementById('name').addEventListener('blur', validateRequiredField);
+    document.getElementById('position').addEventListener('blur', validateRequiredField);
+    document.getElementById('company').addEventListener('blur', validateRequiredField);
+    document.getElementById('phone').addEventListener('blur', validatePhone);
+    document.getElementById('email').addEventListener('blur', validateEmail);
+
+    // Initial selection for gender if any is pre-selected (e.g. from a default value)
+    const initialGender = document.getElementById('gender').value;
+    if (initialGender) {
+        document.querySelector(`.btn-group .btn[onclick*="setGender('${initialGender}')"]`)?.classList.add('active');
+    }
+
+    // Set initial selected template and layout
+    selectTemplate('modern', document.querySelector('.template[data-template="modern"]'));
+    selectLayout('default', document.querySelector('.layout-option[data-layout="default"]'));
+    setIconPosition('left', document.querySelector('.icon-position-btn')); // Select default icon position
+  });
+
+  // Tab switching
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.remove('active');
+    });
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.classList.remove('active');
+    });
+
+    document.getElementById(`${tabName}-tab`).classList.add('active');
+    document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
+  }
+
+  // Avatar handling
+  function handleAvatarUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('avatarPreviewImg').src = e.target.result;
+        document.getElementById('cardAvatar').src = e.target.result;
+        document.querySelectorAll('.avatar-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        updateCard();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function removeAvatar() {
+    const defaultAvatar = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    document.getElementById('avatarPreviewImg').src = defaultAvatar;
+    document.getElementById('cardAvatar').src = defaultAvatar;
+    document.querySelectorAll('.avatar-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    updateCard();
+  }
+
+  function selectBuiltinAvatar(type, element) {
+    let avatarUrl = '';
+    switch(type) {
+      case 'male':
+        avatarUrl = 'https://cdn-icons-png.flaticon.com/512/236/236831.png';
+        break;
+      case 'female':
+        avatarUrl = 'https://cdn-icons-png.flaticon.com/512/236/236832.png';
+        break;
+      case 'kid':
+        avatarUrl = 'https://cdn-icons-png.flaticon.com/512/1864/1864593.png';
+        break;
+      default:
+        avatarUrl = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png';
+    }
+
+    document.getElementById('avatarPreviewImg').src = avatarUrl;
+    document.getElementById('cardAvatar').src = avatarUrl;
+
+    document.querySelectorAll('.avatar-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    if (element) {
+      element.classList.add('selected');
+    }
+    updateCard();
+  }
+
+  // Banner image handling
+  function handleBannerUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('cardBanner').style.backgroundImage = `url(${e.target.result})`;
+        document.getElementById('cardBanner').style.backgroundSize = `cover`; // Ensure it covers
+        document.getElementById('cardBanner').style.backgroundPosition = `center`; // Center it
+        updateCard(); // Trigger update for background image
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  // Gender selection
+  function setGender(gender, element) {
+    document.getElementById('gender').value = gender;
+
+    document.querySelectorAll('.btn-group .btn[onclick*="setGender"]').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    if (element) {
+        element.classList.add('active');
+    }
+    updateCard();
+  }
+
+  // Template selection
+  function selectTemplate(templateId, element) {
+    document.querySelectorAll('.template').forEach(template => {
+      template.classList.remove('selected');
+    });
+    if (element) {
+      element.classList.add('selected');
+    }
+
+    const card = document.getElementById('businessCard');
+    const banner = document.getElementById('cardBanner');
+    const accentColorInput = document.getElementById('accentColor');
+
+    // Clear all template-specific classes and banner styles
+    card.className = 'card'; // Reset to just 'card'
+    banner.style.backgroundImage = ''; // Clear inline background image
+    banner.style.background = ''; // Clear inline background color/gradient
+
+    let defaultAccent = '#6366f1'; // Default primary color
+
+    switch(templateId) {
+      case 'modern':
+        card.classList.add('template-modern');
+        banner.style.background = 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)';
+        defaultAccent = '#6366f1';
+        break;
+      case 'classic':
+        card.classList.add('template-classic');
+        banner.style.background = '#111827'; // Dark solid background
+        defaultAccent = '#f59e0b'; // Example accent for classic
+        break;
+      case 'clean':
+        card.classList.add('template-clean');
+        banner.style.background = 'var(--gray-100)'; // Light gray banner
+        banner.style.borderBottom = '2px solid var(--primary)'; // Accent line
+        defaultAccent = '#3b82f6'; // Example accent for clean
+        break;
+      default:
+        card.classList.add('template-modern'); // Default to modern if unknown
+        banner.style.background = 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)';
+        defaultAccent = '#6366f1';
+    }
+
+    // Apply default accent color for the template unless already customized
+    if (!accentColorInput.dataset.customized) {
+        accentColorInput.value = defaultAccent;
+    }
+
+    updateCard();
+  }
+
+// Layout selection
+  function selectLayout(layout, element) {
+    document.querySelectorAll('.layout-option').forEach(option => {
+      option.classList.remove('selected');
+    });
+    if (element) {
+      element.classList.add('selected');
+    }
+
+    const card = document.getElementById('businessCard');
+    card.classList.remove('minimal-layout', 'icons-top-layout'); // Remove old layouts
+
+    switch(layout) {
+      case 'minimal':
+        card.classList.add('minimal-layout');
+        break;
+      case 'icons-top':
+        card.classList.add('icons-top-layout');
+        break;
+      default:
+        // Default layout
+    }
+    updateCard();
+  }
+
+  // Icon position selection
+  function setIconPosition(position, element) {
+    document.querySelectorAll('.icon-position-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    if (element) {
+      element.classList.add('active');
+    }
+
+    const infoContainer = document.getElementById('cardInfoContainer');
+    // Remove all existing icon position classes
+    infoContainer.classList.remove('icons-left', 'icons-right', 'icons-top');
+    // Add the new selected icon position class
+    infoContainer.classList.add(`icons-${position}`);
+    updateCard();
+  }
+
+  // Icon picker functionality
+  function openIconPicker(field) {
+    selectedIconField = field;
+    document.getElementById('iconPickerModal').style.display = 'flex';
+    filterIcons();
+  }
+
+  function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+    document.getElementById('iconSearch').value = '';
+    selectedIconClass = '';
+    document.querySelectorAll('.icon-item').forEach(item => {
+      item.classList.remove('selected');
+      item.style.display = 'flex';
+    });
+  }
+
+  function populateIconGrid() {
+    const iconGrid = document.getElementById('iconGrid');
+    iconGrid.innerHTML = '';
+    const currentIconStyle = document.getElementById('iconStyle').value;
+
+    const allIcons = [];
+    for (const [category, icons] of Object.entries(iconCategories)) {
+        icons.forEach(icon => allIcons.push(icon));
+    }
+
+    // Sort to prevent duplicate icons and provide consistent order
+    const uniqueIcons = [...new Set(allIcons)].sort();
+
+    uniqueIcons.forEach(icon => {
+        const iconItem = document.createElement('div');
+        iconItem.className = 'icon-item';
+        iconItem.innerHTML = `
+          <i class="${currentIconStyle} fa-${icon}"></i>
+          <span>${icon.replace(/-/g, ' ')}</span>
+        `;
+        iconItem.onclick = function() {
+          selectIcon(this, `${currentIconStyle} fa-${icon}`);
+        };
+        iconGrid.appendChild(iconItem);
+    });
+  }
+
+  function filterIcons() {
+    const searchInput = document.getElementById('iconSearch');
+    const filter = searchInput.value.toLowerCase();
+    const iconItems = document.querySelectorAll('.icon-grid .icon-item');
+
+    iconItems.forEach(item => {
+        const iconName = item.querySelector('span').textContent.toLowerCase();
+        if (iconName.includes(filter)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+  }
+
+  function selectIcon(element, iconClass) {
+    document.querySelectorAll('.icon-item').forEach(item => {
+      item.classList.remove('selected');
+    });
+
+    element.classList.add('selected');
+    selectedIconClass = iconClass;
+  }
+
+  function applySelectedIcon() {
+    if (selectedIconField && selectedIconClass) {
+      const iconElement = document.getElementById(`${selectedIconField}Icon`);
+      if (iconElement) {
+        iconElement.className = selectedIconClass;
+        iconElement.style.color = document.getElementById('iconColor').value; // Apply icon color
+      }
+      closeModal('iconPickerModal');
+      updateCard();
+    }
+  }
+
+  // Update icon styles based on selected style
+  function updateIconStyles() {
+    const iconStyle = document.getElementById('iconStyle').value;
+    const icons = document.querySelectorAll('.info-tile i, .social-link i, .additional-info i');
+
+    icons.forEach(icon => {
+      const currentClasses = Array.from(icon.classList);
+      const baseClass = currentClasses.find(cls => cls.startsWith('fa-'));
+
+      if (baseClass) {
+        icon.classList.remove('fas', 'far', 'fab');
+        icon.classList.add(iconStyle);
+      }
+    });
+    populateIconGrid();
+  }
+
+  // Update icon color (triggered by updateCard)
+  function updateIconColor() {
+    const color = document.getElementById('iconColor').value;
+    const icons = document.querySelectorAll('.info-tile i, .social-link i, .additional-info i');
+
+    icons.forEach(icon => {
+      icon.style.color = color;
+    });
+  }
+
+  // QR Code generation
+  function updateQRCode() {
+    const qrContainer = document.getElementById('qrCodeContainer');
+    const qrCanvas = document.getElementById('qrCodeCanvas');
+    const showQR = document.getElementById('showQRCode').checked;
+    const qrCodeType = document.getElementById('qrCodeType').value;
+    const qrForegroundColor = document.getElementById('qrForegroundColor').value;
+    const qrBackgroundColor = document.getElementById('qrBackgroundColor').value;
+    const qrCodeSize = document.getElementById('qrCodeSize').value;
+
+    document.documentElement.style.setProperty('--card-qr-size', `${qrCodeSize}px`);
+
+    let qrData = '';
+    const name = document.getElementById('name').value;
+    const position = document.getElementById('position').value;
+    const company = document.getElementById('company').value;
+    const phone = document.getElementById('phone').value;
+    const email = document.getElementById('email').value;
+    const website = document.getElementById('website').value;
+    const address = document.getElementById('address').value;
+    const department = document.getElementById('department').value;
+
+    switch (qrCodeType) {
+        case 'website':
+            qrData = website || 'https://example.com';
+            break;
+        case 'email':
+            qrData = `mailto:${email}` || 'mailto:info@example.com';
+            break;
+        case 'phone':
+            qrData = `tel:${phone}` || 'tel:+1234567890';
+            break;
+        case 'text':
+            qrData = `${name}\n${position}\n${company}\n${phone}\n${email}`; // Simple text aggregation
+            break;
+        case 'vcard':
+            // Construct vCard data
+            qrData = `BEGIN:VCARD
+VERSION:3.0
+N:${name.split(' ').slice(1).join(' ') || ''};${name.split(' ')[0] || ''}
+FN:${name || ''}
+ORG:${company || ''}
+TITLE:${position || ''}
+${department ? `X-DEPARTMENT:${department}` : ''}
+TEL:${phone || ''}
+EMAIL:${email || ''}
+ADR:;;${address || ''}
+URL:${website || ''}
+END:VCARD`;
+            break;
+        default:
+            qrData = 'https://example.com';
+    }
+
+    if (showQR && qrData) {
+      qrContainer.style.display = 'inline-block';
+      QRCode.toCanvas(qrCanvas, qrData, {
+        width: parseInt(qrCodeSize),
+        height: parseInt(qrCodeSize),
+        color: {
+          dark: qrForegroundColor,
+          light: qrBackgroundColor
+        },
+        errorCorrectionLevel: 'H' // High error correction
+      }, function (error) {
+        if (error) console.error(error);
+      });
+    } else {
+      qrContainer.style.display = 'none';
+    }
+  }
+
+// Form validation
+  function validateRequiredField() {
+    const field = this;
+    const errorElement = document.getElementById(`${field.id}-error`);
+
+    if (!field.value.trim()) {
+      field.classList.add('error');
+      if (errorElement) errorElement.style.display = 'block';
+      return false;
+    } else {
+      field.classList.remove('error');
+      if (errorElement) errorElement.style.display = 'none';
+      return true;
+    }
+  }
+
+  function validatePhone() {
+    const phone = this;
+    const errorElement = document.getElementById('phone-error');
+    const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,9}$/;
+
+    if (!phoneRegex.test(phone.value.trim()) && phone.value.trim() !== '') {
+      phone.classList.add('error');
+      if (errorElement) errorElement.style.display = 'block';
+      return false;
+    } else {
+      phone.classList.remove('error');
+      if (errorElement) errorElement.style.display = 'none';
+      return true;
+    }
+  }
+
+  function validateEmail() {
+    const email = this;
+    const errorElement = document.getElementById('email-error');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email.value.trim()) && email.value.trim() !== '') {
+      email.classList.add('error');
+      if (errorElement) errorElement.style.display = 'block';
+      return false;
+    } else {
+      email.classList.remove('error');
+      if (errorElement) errorElement.style.display = 'none';
+      return true;
+    }
+  }
+
+  // Main card update function
+  function updateCard() {
+    // Get values from controls
+    const name = document.getElementById('name').value;
+    const position = document.getElementById('position').value;
+    const company = document.getElementById('company').value;
+    const department = document.getElementById('department').value;
+    const phone = document.getElementById('phone').value;
+    const email = document.getElementById('email').value;
+    const address = document.getElementById('address').value;
+    const website = document.getElementById('website').value;
+    const dob = document.getElementById('dob').value;
+    const gender = document.getElementById('gender').value;
+    const description = document.getElementById('description').value;
+
+    const showDob = document.getElementById('showDob').checked;
+    const showGender = document.getElementById('showGender').checked;
+    const showDescription = document.getElementById('showDescription').checked;
+    const showCompany = document.getElementById('showCompany').checked;
+    const showDepartment = document.getElementById('showDepartment').checked;
+    const showAddress = document.getElementById('showAddress').checked;
+    const showWebsite = document.getElementById('showWebsite').checked;
+
+    const bgColor = document.getElementById('bgColor').value;
+    const textColor = document.getElementById('textColor').value;
+    const accentColor = document.getElementById('accentColor').value;
+    const fontFamily = document.getElementById('fontFamily').value;
+    const fontWeight = document.getElementById('fontWeight').value;
+
+    const nameFontSize = document.getElementById('nameFontSize').value;
+    const titleFontSize = document.getElementById('titleFontSize').value;
+    const companyFontSize = document.getElementById('companyFontSize').value;
+    const generalFontSize = document.getElementById('fontSize').value; // 'fontSize' is now 'general text size'
+    const iconSize = document.getElementById('iconSize').value;
+    const iconColor = document.getElementById('iconColor').value;
+
+    const card = document.getElementById('businessCard');
+
+    // Apply dynamic sizing via CSS variables
+    document.documentElement.style.setProperty('--card-name-font-size', `${nameFontSize}px`);
+    document.documentElement.style.setProperty('--card-title-font-size', `${titleFontSize}px`);
+    document.documentElement.style.setProperty('--card-company-font-size', `${companyFontSize}px`);
+    document.documentElement.style.setProperty('--card-font-size', `${generalFontSize}px`); // General text size
+    document.documentElement.style.setProperty('--card-icon-size', `${iconSize}px`);
+
+    // Apply main font weight
+    card.style.fontWeight = fontWeight;
+
+    // Personal Info
+    document.getElementById('cardName').textContent = name || 'Your Name';
+    document.getElementById('cardPosition').textContent = position || 'Job Title';
+
+    // Company & Department
+    const cardCompanyDisplay = document.getElementById('cardCompany'); // The main company/department text at top
+    const companyDisplayTile = document.getElementById('companyDisplayTile'); // The info tile for company
+    const cardCompanyNameInfo = document.getElementById('cardCompanyNameInfo'); // Text for company info tile
+    const departmentTile = document.getElementById('departmentTile');
+    const cardDepartment = document.getElementById('cardDepartment');
+
+    let companyCombinedText = company;
+    if (department && showDepartment) {
+        companyCombinedText += department ? ` | ${department}` : '';
+        cardDepartment.textContent = department;
+        departmentTile.style.display = 'flex';
+    } else {
+        departmentTile.style.display = 'none';
+    }
+    cardCompanyDisplay.textContent = companyCombinedText || 'Company Name';
+
+    if (company && showCompany) {
+        cardCompanyNameInfo.textContent = company;
+        companyDisplayTile.style.display = 'flex';
+    } else {
+        companyDisplayTile.style.display = 'none';
+    }
+
+
+    // Date of Birth
+    const dobTile = document.getElementById('dobTile');
+    const cardDob = document.getElementById('cardDob');
+    if (dob && showDob) {
+        cardDob.textContent = dob;
+        dobTile.style.display = 'flex';
+    } else {
+        dobTile.style.display = 'none';
+    }
+
+    // Gender
+    const genderTile = document.getElementById('genderTile');
+    const cardGender = document.getElementById('cardGender');
+    if (gender && showGender) {
+        cardGender.textContent = gender.charAt(0).toUpperCase() + gender.slice(1);
+        genderTile.style.display = 'flex';
+    } else {
+        genderTile.style.display = 'none';
+    }
+
+    // Description
+    const cardDescription = document.getElementById('cardDescription');
+    if (description && showDescription) {
+        cardDescription.textContent = description;
+        cardDescription.style.display = 'block';
+    } else {
+        cardDescription.style.display = 'none';
+    }
+
+    // Contact Info visibility based on content and toggle
+    document.getElementById('phoneTile').style.display = phone ? 'flex' : 'none';
+    document.getElementById('emailTile').style.display = email ? 'flex' : 'none';
+
+    const addressTileDisplay = document.getElementById('addressTileDisplay');
+    const cardAddressInfo = document.getElementById('cardAddressInfo');
+    if (address && showAddress) {
+        cardAddressInfo.textContent = address;
+        addressTileDisplay.style.display = 'flex';
+    } else {
+        addressTileDisplay.style.display = 'none';
+    }
+
+    const websiteTile = document.getElementById('websiteTile');
+    const cardWebsite = document.getElementById('cardWebsite');
+    if (website && showWebsite) {
+        cardWebsite.textContent = website.replace(/^(https?:\/\/)?(www\.)?/i, ''); // Clean display
+        websiteTile.style.display = 'flex';
+    } else {
+        websiteTile.style.display = 'none';
+    }
+
+    // Update text content for info tiles
+    document.getElementById('cardPhone').textContent = phone || '';
+    document.getElementById('cardEmail').textContent = email || '';
+
+    // Apply colors and font family
+    card.style.backgroundColor = bgColor;
+    card.style.color = textColor;
+    card.style.fontFamily = fontFamily;
+    document.documentElement.style.setProperty('--primary', accentColor);
+    // Recalculate light/dark primary variants or simply use accentColor for them
+    document.documentElement.style.setProperty('--primary-light', lightenColor(accentColor, 20)); // Lighten by 20%
+    document.documentElement.style.setProperty('--primary-dark', darkenColor(accentColor, 10)); // Darken by 10%
+
+    // Ensure icon colors are updated
+    updateIconColor();
+
+    // Update social links
+    updateSocialLinks();
+
+    // Update QR code (will also apply size and color)
+    updateQRCode();
+
+    // Auto-save the current state
+    saveDesign(true); // true means auto-save
+  }
+
+  // Helper functions for color manipulation
+  function lightenColor(hex, percent) {
+    const num = parseInt(hex.slice(1), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const B = ((num >> 8) & 0x00FF) + amt;
+    const G = (num & 0x0000FF) + amt;
+    return `#${(0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (B < 255 ? B < 1 ? 0 : B : 255) * 0x100 + (G < 255 ? G < 1 ? 0 : G : 255)).toString(16).slice(1)}`;
+  }
+
+  function darkenColor(hex, percent) {
+    const num = parseInt(hex.slice(1), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) - amt;
+    const B = ((num >> 8) & 0x00FF) - amt;
+    const G = (num & 0x0000FF) - amt;
+    return `#${(0x1000000 + (R > 0 ? R : 0) * 0x10000 + (B > 0 ? B : 0) * 0x100 + (G > 0 ? G : 0)).toString(16).slice(1)}`;
+  }
+
+  // Social links management
+  function updateSocialLinks() {
+    const socialLinksContainer = document.getElementById('socialLinks');
+    socialLinksContainer.innerHTML = '';
+
+    const socialPlatforms = [
+      { id: 'linkedin', icon: 'fab fa-linkedin-in' },
+      { id: 'twitter', icon: 'fab fa-twitter' },
+      { id: 'instagram', icon: 'fab fa-instagram' },
+      { id: 'github', icon: 'fab fa-github' }
+      // Add more social platforms here as needed
+      // { id: 'facebook', icon: 'fab fa-facebook-f' },
+      // { id: 'youtube', icon: 'fab fa-youtube' }
+    ];
+
+    const currentIconStyle = document.getElementById('iconStyle').value;
+    const iconColor = document.getElementById('iconColor').value;
+
+    socialPlatforms.forEach(platform => {
+      const url = document.getElementById(platform.id).value;
+      if (url) {
+        const link = document.createElement('a');
+        link.className = 'social-link';
+        link.href = url;
+        link.target = '_blank';
+        const baseIconName = platform.icon.split('fa-')[1];
+        link.innerHTML = `<i class="${currentIconStyle} fa-${baseIconName}"></i>`;
+        link.querySelector('i').style.color = iconColor;
+        socialLinksContainer.appendChild(link);
+      }
+    });
+  }
+
+  // Generate and download card
+  function generateCard() {
+    console.log("Attempting to generate card..."); // Add this for debugging
+
+    // Validate required fields
+    const isValid = [
+      validateRequiredField.call(document.getElementById('name')),
+      validateRequiredField.call(document.getElementById('position')),
+      validateRequiredField.call(document.getElementById('company')),
+      validatePhone.call(document.getElementById('phone')),
+      validateEmail.call(document.getElementById('email'))
+    ].every(result => result);
+
+    if (!isValid) {
+      alert('Please fill in all required fields correctly before downloading.');
+      return;
+    }
+
+    // Ensure all styles are applied before capturing
+    updateCard();
+
+    html2canvas(document.getElementById('businessCard'), {
+        scale: 3, // Higher scale for better quality PNG
+        useCORS: true,
+        logging: true, // Enable logging for html2canvas
+        backgroundColor: null // Allow transparent background
+    }).then(canvas => {
+      console.log("Canvas generated successfully."); // Add this for debugging
+      const dataURL = canvas.toDataURL('image/png');
+      console.log("Data URL length:", dataURL.length); // Check if it's a valid data URL
+      if (dataURL.length < 100) { // Very short URL suggests an empty/failed canvas
+          console.error("Canvas toDataURL might have failed or generated empty data.");
+      }
+
+      const link = document.createElement('a');
+      link.download = 'business-card.png';
+      link.href = dataURL;
+      link.click();
+      console.log("Download link clicked."); // Add this for debugging
+    }).catch(error => {
+        console.error("Error generating card with html2canvas:", error); // Log any errors from html2canvas
+    });
+  }
+
+  // Generate and download VCard
+  function generateVCard() {
+      const name = document.getElementById('name').value;
+      const position = document.getElementById('position').value;
+      const company = document.getElementById('company').value;
+      const department = document.getElementById('department').value;
+      const phone = document.getElementById('phone').value;
+      const email = document.getElementById('email').value;
+      const address = document.getElementById('address').value;
+      const website = document.getElementById('website').value;
+
+      const vcardContent = `BEGIN:VCARD
+VERSION:3.0
+N:${name.split(' ').slice(1).join(' ') || ''};${name.split(' ')[0] || ''}
+FN:${name || ''}
+ORG:${company || ''}
+TITLE:${position || ''}
+${department ? `X-DEPARTMENT:${department}` : ''}
+TEL;TYPE=WORK,VOICE:${phone || ''}
+EMAIL;TYPE=PREF,INTERNET:${email || ''}
+ADR;TYPE=WORK:;;${address || ''}
+URL:${website || ''}
+${document.getElementById('linkedin').value ? `X-SOCIALPROFILE;type=linkedin:${document.getElementById('linkedin').value}` : ''}
+${document.getElementById('twitter').value ? `X-SOCIALPROFILE;type=twitter:${document.getElementById('twitter').value}` : ''}
+${document.getElementById('instagram').value ? `X-SOCIALPROFILE;type=instagram:${document.getElementById('instagram').value}` : ''}
+${document.getElementById('github').value ? `X-SOCIALPROFILE;type=github:${document.getElementById('github').value}` : ''}
+END:VCARD`;
+
+      const blob = new Blob([vcardContent], { type: 'text/vcard;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${name.replace(/\s/g, '_') || 'contact'}.vcf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+  }
+
+  // --- Save/Load Design Functions ---
+  function getDesignState() {
+      const state = {};
+      const inputs = document.querySelectorAll('#personal-tab input, #personal-tab select, #personal-tab textarea, ' +
+                                               '#professional-tab input, #professional-tab select, #professional-tab textarea, ' +
+                                               '#social-tab input, #social-tab select, #social-tab textarea, ' +
+                                               '#design-tab input, #design-tab select');
+      inputs.forEach(input => {
+          if (input.type === 'checkbox') {
+              state[input.id] = input.checked;
+          } else if (input.type === 'file') {
+              // Handle file inputs separately (e.g., store base64 if desired, or just omit)
+              // For now, we'll omit direct file content in the saved state
+          } else {
+              state[input.id] = input.value;
+          }
+      });
+
+      // Include selected avatar, template, layout, icon position
+      state.selectedAvatar = document.getElementById('avatarPreviewImg').src;
+      state.selectedTemplate = document.querySelector('.template.selected')?.dataset.template || 'modern';
+      state.selectedLayout = document.querySelector('.layout-option.selected')?.dataset.layout || 'default';
+
+      // Adjusted to get the text content of the active button's span
+      const activeIconPosBtn = document.querySelector('.icon-position-btn.active');
+      state.selectedIconPosition = activeIconPosBtn ? activeIconPosBtn.querySelector('span').textContent.trim().toLowerCase() : 'left'; // Store as lowercase
+      
+      // Store custom icon classes
+      state.customPhoneIcon = document.getElementById('phoneIcon').className;
+      state.customEmailIcon = document.getElementById('emailIcon').className;
+      state.customCompanyIcon = document.getElementById('companyIcon').className;
+      state.customAddressIcon = document.getElementById('addressIcon').className;
+      state.customWebsiteIcon = document.getElementById('websiteIcon').className;
+      state.customDepartmentIcon = document.getElementById('departmentIcon').className; // Add department icon
+
+      // Store banner image if uploaded
+      const bannerStyle = document.getElementById('cardBanner').style.backgroundImage;
+      if (bannerStyle && bannerStyle !== 'none') {
+          state.customBannerImage = bannerStyle.replace(/url\(['"]?(.*?)['"]?\)/, '$1');
+      } else {
+          state.customBannerImage = '';
+      }
+
+      return state;
+  }
+
+  function applyDesignState(state) {
+      if (!state) return;
+
+      const inputs = document.querySelectorAll('#personal-tab input, #personal-tab select, #personal-tab textarea, ' +
+                                               '#professional-tab input, #professional-tab select, #professional-tab textarea, ' +
+                                               '#social-tab input, #social-tab select, #social-tab textarea, ' +
+                                               '#design-tab input, #design-tab select');
+      inputs.forEach(input => {
+          if (state.hasOwnProperty(input.id)) {
+              if (input.type === 'checkbox') {
+                  input.checked = state[input.id];
+              } else {
+                  input.value = state[input.id];
+              }
+          }
+      });
+
+      // Apply selected avatar
+      document.getElementById('avatarPreviewImg').src = state.selectedAvatar;
+      document.getElementById('cardAvatar').src = state.selectedAvatar;
+      document.querySelectorAll('.avatar-option').forEach(option => {
+          option.classList.remove('selected');
+          if (state.selectedAvatar.includes('236831.png') && option.onclick.toString().includes('male')) option.classList.add('selected');
+          if (state.selectedAvatar.includes('236832.png') && option.onclick.toString().includes('female')) option.classList.add('selected');
+          if (state.selectedAvatar.includes('1864593.png') && option.onclick.toString().includes('kid')) option.classList.add('selected');
+      });
+
+      // Apply template
+      const templateElement = document.querySelector(`.template[data-template="${state.selectedTemplate}"]`);
+      if (templateElement) selectTemplate(state.selectedTemplate, templateElement);
+      // Ensure accent color is applied from saved state, not overridden by template default
+      if (state.accentColor) {
+          document.getElementById('accentColor').value = state.accentColor;
+          document.getElementById('accentColor').dataset.customized = 'true'; // Mark as customized
+      } else {
+          document.getElementById('accentColor').dataset.customized = '';
+      }
+
+
+      // Apply layout
+      const layoutElement = document.querySelector(`.layout-option[data-layout="${state.selectedLayout}"]`);
+      if (layoutElement) selectLayout(state.selectedLayout, layoutElement);
+
+      // Apply icon position
+      const iconPosBtn = Array.from(document.querySelectorAll('.icon-position-btn')).find(btn => btn.querySelector('span').textContent.trim().toLowerCase() === state.selectedIconPosition); // Match lowercase
+      if (iconPosBtn) setIconPosition(state.selectedIconPosition, iconPosBtn); // Pass the stored lowercase value to setIconPosition
+
+      // Apply custom icon classes
+      if (state.customPhoneIcon) document.getElementById('phoneIcon').className = state.customPhoneIcon;
+      if (state.customEmailIcon) document.getElementById('emailIcon').className = state.customEmailIcon;
+      if (state.customCompanyIcon) document.getElementById('companyIcon').className = state.customCompanyIcon;
+      if (state.customAddressIcon) document.getElementById('addressIcon').className = state.customAddressIcon;
+      if (state.customWebsiteIcon) document.getElementById('websiteIcon').className = state.customWebsiteIcon;
+      if (state.customDepartmentIcon) document.getElementById('departmentIcon').className = state.customDepartmentIcon;
+
+
+      // Apply banner image
+      if (state.customBannerImage) {
+          document.getElementById('cardBanner').style.backgroundImage = `url(${state.customBannerImage})`;
+          document.getElementById('cardBanner').style.backgroundSize = `cover`;
+          document.getElementById('cardBanner').style.backgroundPosition = `center`;
+      } else {
+          document.getElementById('cardBanner').style.backgroundImage = ''; // Clear if not present
+      }
+
+      // Re-run all updates
+      updateIconStyles(); // Ensure icons are styled correctly based on selected style
+      updateCard();
+  }
+
+  function saveDesign(isAutoSave = false) {
+      const designState = getDesignState();
+      let designs = JSON.parse(localStorage.getItem('businessCardDesigns') || '[]');
+
+      if (isAutoSave) {
+          localStorage.setItem('lastBusinessCardDesign', JSON.stringify(designState));
+          return; // Don't add auto-saves to the named list
+      }
+
+      const designName = prompt("Enter a name for your design:");
+      if (designName) {
+          // Check if a design with this name already exists and replace it
+          const existingIndex = designs.findIndex(d => d.name === designName);
+          if (existingIndex > -1) {
+              designs[existingIndex] = { name: designName, timestamp: new Date().toISOString(), state: designState };
+          } else {
+              designs.push({ name: designName, timestamp: new Date().toISOString(), state: designState });
+          }
+          localStorage.setItem('businessCardDesigns', JSON.stringify(designs));
+          alert(`Design "${designName}" saved!`);
+          loadSavedDesigns(); // Refresh the load modal list
+      }
+  }
+
+  function loadDesignByName(name) {
+      const designs = JSON.parse(localStorage.getItem('businessCardDesigns') || '[]');
+      const design = designs.find(d => d.name === name);
+      if (design) {
+          applyDesignState(design.state);
+          alert(`Design "${name}" loaded!`);
+          closeModal('loadDesignModal');
+      } else {
+          alert('Design not found!');
+      }
+  }
+
+  function deleteDesign(name) {
+      if (confirm(`Are you sure you want to delete "${name}"?`)) {
+          let designs = JSON.parse(localStorage.getItem('businessCardDesigns') || '[]');
+          designs = designs.filter(d => d.name !== name);
+          localStorage.setItem('businessCardDesigns', JSON.stringify(designs));
+          alert(`Design "${name}" deleted.`);
+          loadSavedDesigns();
+      }
+  }
+
+  function loadLastDesign() {
+      const lastDesign = localStorage.getItem('lastBusinessCardDesign');
+      if (lastDesign) {
+          try {
+              const state = JSON.parse(lastDesign);
+              applyDesignState(state);
+          } catch (e) {
+              console.error("Error loading last design:", e);
+              // Fallback to default if corrupted
+              updateCard();
+              updateQRCode();
+          }
+      } else {
+          updateCard();
+          updateQRCode();
+      }
+  }
+
+  function loadSavedDesigns() {
+      const designs = JSON.parse(localStorage.getItem('businessCardDesigns') || '[]');
+      const list = document.getElementById('savedDesignsList');
+      list.innerHTML = ''; // Clear existing list
+
+      if (designs.length === 0) {
+          list.innerHTML = '<li>No saved designs found.</li>';
+          return;
+      }
+
+      designs.forEach(design => {
+          const li = document.createElement('li');
+          const date = new Date(design.timestamp).toLocaleString();
+          li.innerHTML = `
+              <span>${design.name} <br><small>(${date})</small></span>
+              <div class="actions">
+                  <button class="btn btn-primary" onclick="loadDesignByName('${design.name}')">Load</button>
+                  <button class="btn btn-outline" onclick="deleteDesign('${design.name}')">Delete</button>
+              </div>
+          `;
+          list.appendChild(li);
+      });
+  }
+
+  function clearDesign() {
+      if (confirm('Are you sure you want to clear the current design and start over?')) {
+          // Reset all input fields
+          document.getElementById('name').value = '';
+          document.getElementById('position').value = '';
+          document.getElementById('company').value = '';
+          document.getElementById('department').value = '';
+          document.getElementById('phone').value = '';
+          document.getElementById('email').value = '';
+          document.getElementById('address').value = '';
+          document.getElementById('website').value = '';
+          document.getElementById('dob').value = '';
+          document.getElementById('gender').value = '';
+          document.getElementById('description').value = '';
+
+          // Reset toggles to checked (default)
+          document.getElementById('showDob').checked = true;
+          document.getElementById('showGender').checked = true;
+          document.getElementById('showDescription').checked = true;
+          document.getElementById('showCompany').checked = true;
+          document.getElementById('showDepartment').checked = true;
+          document.getElementById('showAddress').checked = true;
+          document.getElementById('showWebsite').checked = true;
+          document.getElementById('showQRCode').checked = true;
+
+          // Reset colors and font settings
+          document.getElementById('bgColor').value = '#ffffff';
+          document.getElementById('textColor').value = '#111827';
+          document.getElementById('accentColor').value = '#6366f1';
+          document.getElementById('fontFamily').value = "'Poppins', sans-serif";
+          document.getElementById('fontWeight').value = '600';
+
+          document.getElementById('nameFontSize').value = '24';
+          document.getElementById('titleFontSize').value = '18';
+          document.getElementById('companyFontSize').value = '16';
+          document.getElementById('fontSize').value = '16';
+          document.getElementById('iconSize').value = '32';
+          document.getElementById('iconColor').value = '#6b7280';
+          document.getElementById('qrCodeSize').value = '150';
+          document.getElementById('qrCodeType').value = 'website';
+          document.getElementById('qrForegroundColor').value = '#000000';
+          document.getElementById('qrBackgroundColor').value = '#ffffff';
+
+          // Reset social media URLs
+          document.getElementById('linkedin').value = '';
+          document.getElementById('twitter').value = '';
+          document.getElementById('instagram').value = '';
+          document.getElementById('github').value = '';
+
+          // Reset avatar and banner
+          removeAvatar();
+          document.getElementById('cardBanner').style.backgroundImage = ''; // Clear custom banner
+          document.getElementById('cardBanner').style.background = ''; // Clear template banner color
+
+          // Reset active classes for buttons
+          document.querySelectorAll('.btn-group .btn.active').forEach(btn => btn.classList.remove('active'));
+          // Re-select default gender
+          setGender('', null); // Clear gender selection
+          document.querySelector('.btn-group .btn[onclick*="setGender(\'male\')"]')?.classList.remove('active');
+          document.querySelector('.btn-group .btn[onclick*="setGender(\'female\')"]')?.classList.remove('active');
+          document.querySelector('.btn-group .btn[onclick*="setGender(\'other\')"]')?.classList.remove('active');
+
+
+          // Reset template, layout, icon position selections
+          selectTemplate('modern', document.querySelector('.template[data-template="modern"]'));
+          selectLayout('default', document.querySelector('.layout-option[data-layout="default"]'));
+          setIconPosition('left', document.querySelector('.icon-position-btn'));
+
+          // Reset custom icons to default (fa-phone, fa-envelope etc.)
+          document.getElementById('phoneIcon').className = 'fas fa-phone';
+          document.getElementById('emailIcon').className = 'fas fa-envelope';
+          document.getElementById('companyIcon').className = 'fas fa-building';
+          document.getElementById('addressIcon').className = 'fas fa-map-marker-alt';
+          document.getElementById('websiteIcon').className = 'fas fa-globe';
+          document.getElementById('departmentIcon').className = 'fas fa-building'; // Assuming default for department
+
+          // Clear validation errors
+          document.querySelectorAll('.form-control.error').forEach(el => el.classList.remove('error'));
+          document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+
+          // Finally, update the card with cleared/default values
+          updateCard();
+          alert('Design cleared! Starting with a fresh card.');
+      }
+  }
+
+  // Handle modal opening and refreshing content
+  function openModal(modalId) {
+    if (modalId === 'loadDesignModal') {
+        loadSavedDesigns(); // Populate the list when opening load modal
+    }
+    document.getElementById(modalId).style.display = 'flex';
+  }
+
+</script>
+</body>
+</html>
